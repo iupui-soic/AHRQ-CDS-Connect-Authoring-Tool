@@ -47,9 +47,6 @@ export default function CdsFooter() {
             <img src={`${process.env.PUBLIC_URL}/assets/images/cds-connect-logo.png`} height="35" alt="CDS Connect" />{' '}
             Clinical Decision Support (CDS)
           </div>
-
-          <CdsToolLinks className="cds-footer__links footer-wide" numRows={2} />
-          <CdsToolLinks className="cds-footer__links footer-mobile" numRows={5} />
         </div>
       </div>
     </footer>
