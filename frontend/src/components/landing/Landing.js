@@ -131,25 +131,6 @@ const Landing = () => {
           </div>
         </div>
 
-        <div className={clsx(styles.homeFooter, spacingStyles.fullBleed)}>
-          <p>
-            The CDS Authoring Tool is currently under development. Users should be aware of the following known
-            limitations in current releases of the Authoring Tool:
-          </p>
-
-          <ul>
-            <li>a limited set of logical capabilities, primarily focused on inclusion/exclusion logic</li>
-            <li>support for only rule-based CDS, providing string-based recommendation statements</li>
-          </ul>
-
-          <p>
-            The CDS Connect team appreciates your{' '}
-            <a href="https://cds.ahrq.gov/contact-us" onClick={onVisitExternalForm}>
-              feedback
-            </a>{' '}
-            and participation to help shape the CDS Authoring Tool as it moves forward.
-          </p>
-        </div>
       </div>
     </div>
   );
