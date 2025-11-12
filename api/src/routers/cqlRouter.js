@@ -8,5 +8,4 @@ CQLRouter.route('/').post(cql.objToZippedCql);
 
 CQLRouter.route('/validate').post(cql.objToELM);
 CQLRouter.route('/viewCql').post(cql.objToViewableCql);
-
 module.exports = CQLRouter;

@@ -18,5 +18,8 @@ module.exports = {
       configureFallbacks(webpackConfig);
       return webpackConfig;
     }
+  },
+  devServer: {
+    allowedHosts: 'all'
   }
 };

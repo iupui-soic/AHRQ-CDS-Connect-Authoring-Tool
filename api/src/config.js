@@ -176,6 +176,27 @@ const config = convict({
     format: 'String',
     default: 'https://cts.nlm.nih.gov/fhir',
     env: 'TERMINOLOGY_ENDPOINT'
+  },
+  // NEW: Configuration for syncing artifacts to CQL Services
+  cqlServices: {
+    librariesPath: {
+      doc: 'Path to CQL Services libraries folder for auto-saving ELM JSON files',
+      format: 'String',
+      default: path.join(__dirname, '..', '..', '..', 'AHRQ-CDS-Connect-CQL-SERVICES', 'config', 'libraries'),
+      env: 'CQL_SERVICES_LIBRARIES_PATH'
+    },
+    hooksPath: {
+      doc: 'Path to CQL Services hooks folder for auto-saving hook configuration files',
+      format: 'String',
+      default: path.join(__dirname, '..', '..', '..', 'AHRQ-CDS-Connect-CQL-SERVICES', 'config', 'hooks'),
+      env: 'CQL_SERVICES_HOOKS_PATH'
+    },
+    syncEnabled: {
+      doc: 'Indicates if auto-syncing to CQL Services is enabled',
+      format: 'Boolean',
+      default: true,
+      env: 'CQL_SERVICES_SYNC_ENABLED'
+    }
   }
 });
 

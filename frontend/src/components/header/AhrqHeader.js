@@ -18,16 +18,14 @@ export default function AhrqHeader() {
               <div className="col-sm-auto col-lg-auto banner-hhs img-icon">
                 <img
                   className="usa-banner__header-flag"
-                  src={`${process.env.PUBLIC_URL}/assets/images/logo-HHSmini.png`}
-                  alt="Health and Human Services Logo"
+                  src={`${process.env.PUBLIC_URL}/assets/images/iu-logo-mini.png`}
+                  alt="Indiana University Indianapolis Logo"
                 />
               </div>
 
               <div className="col-sm-8 col-lg-8 txt-gov-banner">
                 <p className="usa-banner__header-text">
-                  <a href="https://www.hhs.gov/">
-                    An official website of the Department of Health &amp; Human Services
-                  </a>
+                  <a href="https://www.iu.edu/">Indiana University Indianapolis</a>
                 </p>
               </div>
             </div>
@@ -48,10 +46,10 @@ export default function AhrqHeader() {
                 <div className="row">
                   <div className="col-xs-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
                     <div className="logo-ahrq">
-                      <a href="https://www.ahrq.gov">
+                      <a href="https://www.iu.edu">
                         <img
-                          src={`${process.env.PUBLIC_URL}/assets/images/logo-ahrq.png`}
-                          alt="AHRQ: Agency for Healthcare Research and Quality"
+                          src={`${process.env.PUBLIC_URL}/assets/images/iu-logo.png`}
+                          alt="Indiana University Indianapolis"
                         />
                       </a>
                     </div>
@@ -61,49 +59,31 @@ export default function AhrqHeader() {
                     <div id="utility-nav">
                       <ul className="clearfix">
                         <li className="first">
-                          <a href="https://search.ahrq.gov/" target="_blank" rel="noopener noreferrer">
-                            Search All AHRQ Sites
+                          <a href="https://www.iu.edu/search" target="_blank" rel="noopener noreferrer">
+                            Search
                           </a>
                         </li>
 
                         <li>
-                          <a
-                            href="https://www.ahrq.gov/cpi/about/careers/index.html"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
+                          <a href="https://www.iu.edu/careers" target="_blank" rel="noopener noreferrer">
                             Careers
                           </a>
                         </li>
 
                         <li>
-                          <a href="https://www.ahrq.gov/contact/index.html" target="_blank" rel="noopener noreferrer">
+                          <a href="https://www.iu.edu/contact" target="_blank" rel="noopener noreferrer">
                             Contact Us
                           </a>
                         </li>
 
-                        <li>
-                          <a
-                            href="https://www.ahrq.gov/topics/informacion-en-espanol/index.html"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Español
-                          </a>
-                        </li>
-
                         <li className="last">
-                          <a href="https://info.ahrq.gov/" target="_blank" rel="noopener noreferrer">
+                          <a href="https://www.iu.edu/faq" target="_blank" rel="noopener noreferrer">
                             FAQs
                           </a>
                         </li>
 
                         <li>
-                          <a
-                            href="https://subscriptions.ahrq.gov/accounts/USAHRQ/subscriber/new"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
+                          <a href="https://www.iu.edu/subscribe" target="_blank" rel="noopener noreferrer">
                             <img
                               src={`${process.env.PUBLIC_URL}/assets/images/envelope-regular.png`}
                               width="18"

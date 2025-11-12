@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useDispatch, useSelector } from 'react-redux';
 import { CircularProgress } from '@mui/material';
 
-import { saveArtifact, downloadArtifact, fetchArtifact, initializeArtifact } from 'queries/artifacts';
+import { saveArtifact, downloadArtifact, fetchArtifact, initializeArtifact, downloadAndSyncArtifact } from 'queries/artifacts'; // NEW: Added downloadAndSyncArtifact
 import { fetchExternalCqlList } from 'queries/external-cql';
 import { artifactSaved, loadArtifact } from 'actions/artifacts';
 import { setScrollToId } from 'actions/navigation';
@@ -71,6 +71,16 @@ const Workspace = ({ match }) => {
     }
   });
 
+  // NEW: Mutation for Download & Sync to CQL Services
+  const { mutateAsync: invokeDownloadAndSyncArtifact } = useMutation(downloadAndSyncArtifact, {
+    onSuccess: () => {
+      setStatusMessage(`Downloaded & Synced to CQL Services ${moment().format('dddd, MMMM Do YYYY, h:mm:ss a')}`);
+    },
+    onError: error => {
+      setStatusMessage(`Download & Sync failed. ${error.message ?? 'Unknown error'}.`);
+    }
+  });
+
   // Scroll when navigating to an element from a link
   useEffect(() => {
     const elementToScrollTo = document.getElementById(scrollToId);
@@ -119,6 +129,7 @@ const Workspace = ({ match }) => {
         <div className={styles.workspace}>
           <WorkspaceHeader
             handleDownloadArtifact={(artifact, dataModel) => invokeDownloadArtifact({ artifact, dataModel })}
+            handleDownloadAndSyncArtifact={(artifact, dataModel) => invokeDownloadAndSyncArtifact({ artifact, dataModel })} // NEW: Pass new handler
             handleSaveArtifact={handleSaveArtifact}
             statusMessage={statusMessage}
           />

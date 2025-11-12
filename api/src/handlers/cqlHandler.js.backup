@@ -1571,16 +1571,14 @@ function objToELM(req, res) {
 }
 
 function objConvert(req, res, callback) {
-//   if (req.user == null && req.ip !== '127.0.0.1' && req.ip !== '::1') {
-//     sendUnauthorized(res);
-//     return;
-//   }
-  const user = req.user ? req.user.uid : "sync-script";
+  if (req.user == null) {
+    sendUnauthorized(res);
+    return;
+  }
+  const user = req.user.uid;
   const artifactId = req.body._id;
   const artifactFromRequest = req.body;
   const includeCQL = req.query['includeCQL'] === 'true';
-  // NEW: Check if we should sync to CQL Services
-  const syncToCqlServicesFlag = req.query['syncToCqlServices'] === 'true';
   artifactFromRequest.externalLibs = [];
   const externalLibs = [];
   // Add all external libraries
@@ -1603,8 +1601,6 @@ function objConvert(req, res, callback) {
       });
       const artifact = new CqlArtifact(artifactFromRequest);
       artifact._id = artifactId;
-      // NEW: Attach sync flag to artifact object for use in writeZip
-      artifact._syncToCqlServices = syncToCqlServicesFlag;
       const artifactJson = artifact.toJson();
 
       // Merge the artifact with the commons and conversions libraries
@@ -1707,7 +1703,6 @@ async function convertToCPGPL(cqlArtifact, cqlText) {
 // Note: This callback ignores an argument (via a _ placeholder) specifying whether CQL should be included
 // since it always includes CQL
 function writeZip(artifact, artifactJson, externalLibs, _, writeStream, callback /* (error) */) {
-  console.log('Writing zip');
   const artifacts = [artifactJson, ...externalLibs];
   // convert the artifact to a CPG Publishable Library, passing in the text directly (since it was likely modified)
   convertToCPGPL(artifact, artifactJson.text).then(function (cpgString) {
@@ -1717,8 +1712,6 @@ function writeZip(artifact, artifactJson, externalLibs, _, writeStream, callback
         callback(err);
         return;
       }
-// Save to CQL Services
-
       // Now build the zip, piping it to the writestream
       writeStream.attachment('archive-name.zip');
       const archive = archiver('zip', { zlib: { level: 9 } }).on('error', callback);
@@ -1745,17 +1738,6 @@ function writeZip(artifact, artifactJson, externalLibs, _, writeStream, callback
           name: e.content.startsWith('<') ? `${e.name}.xml` : `${e.name}.json`
         });
       });
-
-      // NEW: Sync to CQL Services if requested
-      if (artifact._syncToCqlServices) {
-        console.log('Syncing to CQL Services...');
-        const syncResult = syncToCqlServices(artifact, elmFiles);
-        if (syncResult.success) {
-          console.log('✓ Sync to CQL Services completed');
-        } else {
-          console.error('✗ Sync to CQL Services failed:', syncResult.message);
-        }
-      }
 
       const helperPath = path.join(
         __dirname,
@@ -1893,133 +1875,4 @@ function formatCQL(cqlText, callback) {
 
 function buildCQL(artifactBody) {
   return new CqlArtifact(artifactBody);
-}
-
-// NEW: Function to sync artifact to CQL Services
-// Writes ELM JSON and Hook config to CQL Services folders
-function syncToCqlServices(artifact, elmFiles) {
-  if (!config.get('cqlServices.syncEnabled')) {
-    console.log('CQL Services sync is disabled in config');
-    return { success: false, message: 'Sync disabled in config' };
-  }
-
-  try {
-    const artifactName = slug(artifact.name ? artifact.name : 'untitled', { lower: false });
-    const librariesPath = config.get('cqlServices.librariesPath');
-    const hooksPath = config.get('cqlServices.hooksPath');
-
-    // Ensure CQL Services paths exist
-    if (!fs.existsSync(librariesPath)) {
-      return { success: false, message: 'CQL Services libraries path not found: ' + librariesPath };
-    }
-    if (!fs.existsSync(hooksPath)) {
-      return { success: false, message: 'CQL Services hooks path not found: ' + hooksPath };
-    }
-
-    // Create artifact directory in libraries folder
-    const artifactLibDir = path.join(librariesPath, artifactName);
-    if (!fs.existsSync(artifactLibDir)) {
-      fs.mkdirSync(artifactLibDir, { recursive: true });
-    }
-
-    // NEW: Write ELM JSON files to libraries folder
-    // Filter to only process JSON files (exclude XML files that start with '<')
-    const elmJsonFiles = elmFiles.filter(elmFile => !elmFile.content.startsWith('<'));
-    elmJsonFiles.forEach(elmFile => {
-      const elmJson = JSON.parse(elmFile.content);
-      const libraryId = elmJson.library.identifier.id;
-      const elmFilePath = path.join(artifactLibDir, `${libraryId}.json`);
-      fs.writeFileSync(elmFilePath, JSON.stringify(elmJson, null, 2), 'utf8');
-      console.log(`✓ Synced ELM to CQL Services: ${artifactName}/${libraryId}.json`);
-    });
-
-    // NEW: Generate and write Hook configuration
-    const hookConfig = generateHookConfig(artifact, elmJsonFiles);
-    const hookFilePath = path.join(hooksPath, `${artifactName}.json`);
-    fs.writeFileSync(hookFilePath, JSON.stringify(hookConfig, null, 2), 'utf8');
-    console.log(`✓ Synced Hook config to CQL Services: ${artifactName}.json`);
-
-    return {
-      success: true,
-      message: 'Successfully synced to CQL Services',
-      files: {
-        libraries: elmJsonFiles.map(e => `${artifactName}/${JSON.parse(e.content).library.identifier.id}.json`),
-        hook: `${artifactName}.json`
-      }
-    };
-  } catch (err) {
-    console.error('✗ Error syncing to CQL Services:', err);
-    return { success: false, message: err.message };
-  }
-}
-
-// NEW: Generate CDS Hook configuration from artifact
-function generateHookConfig(artifact, elmFiles) {
-  const artifactName = slug(artifact.name ? artifact.name : 'untitled', { lower: false });
-
-  // Get the main ELM file (first one, which is the artifact itself)
-  const mainElm = JSON.parse(elmFiles[0].content);
-  const libraryId = mainElm.library.identifier.id;
-  const libraryVersion = mainElm.library.identifier.version;
-
-  // NEW: Build cards from recommendations
-  const cards = [];
-  if (artifact.recommendations && artifact.recommendations.length > 0) {
-    artifact.recommendations.forEach((rec, index) => {
-      const card = {
-        conditionExpression: 'InPopulation', // Default, could be customized per recommendation
-        card: {
-          summary: artifact.name || 'Clinical Decision Support',
-          indicator: 'info', // Could be 'info', 'warning', 'critical'
-          detail: '${Recommendation}', // CQL expression reference
-          source: {
-            label: `CDS Connect: ${artifact.name}`,
-            url: 'https://cds.ahrq.gov/cdsconnect'
-          }
-        }
-      };
-
-      // NEW: Add rationale if available
-      if (rec.rationale) {
-        card.card.extension = {
-          rationale: '${Rationale}'
-        };
-      }
-
-      cards.push(card);
-    });
-  } else {
-    // NEW: Default card if no recommendations
-    cards.push({
-      conditionExpression: 'InPopulation',
-      card: {
-        summary: artifact.name || 'Clinical Decision Support',
-        indicator: 'info',
-        detail: '${Recommendation}',
-        source: {
-          label: `CDS Connect: ${artifact.name}`,
-          url: 'https://cds.ahrq.gov/cdsconnect'
-        }
-      }
-    });
-  }
-
-  // NEW: Generate hook configuration
-  const hookConfig = {
-    id: artifactName,
-    hook: 'patient-view', // Default hook type
-    title: artifact.name || 'Clinical Decision Support',
-    description: artifact.description || `Clinical decision support for ${artifact.name}`,
-    _config: {
-      cards: cards,
-      cql: {
-        library: {
-          id: libraryId,
-          version: libraryVersion
-        }
-      }
-    }
-  };
-
-  return hookConfig;
 }

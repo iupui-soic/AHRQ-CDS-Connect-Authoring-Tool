@@ -14,7 +14,7 @@ import useStyles from './styles';
 import { ArtifactModal } from 'components/artifact';
 import { CQLModal, ELMErrorModal } from 'components/modals';
 
-const WorkspaceHeader = ({ handleDownloadArtifact, handleSaveArtifact, statusMessage }) => {
+const WorkspaceHeader = ({ handleDownloadArtifact, handleDownloadAndSyncArtifact, handleSaveArtifact, statusMessage }) => { // NEW: Added handleDownloadAndSyncArtifact prop
   const styles = useStyles();
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [showArtifactModal, setShowArtifactModal] = useState(false);
@@ -48,6 +48,18 @@ const WorkspaceHeader = ({ handleDownloadArtifact, handleSaveArtifact, statusMes
     }
   };
 
+  // NEW: Handler for Download & Sync to CQL Services
+  const handleDownloadAndSync = async version => {
+    setMenuAnchorEl(null);
+    const { elmErrors } = await handleDownloadAndSyncArtifact(artifact, { name: 'FHIR', version });
+    if (elmErrors) {
+      setElmErrors(elmErrors);
+      if (elmErrors.length > 0) {
+        setShowElmErrorModal(true);
+      }
+    }
+  };
+
   const handleViewCQL = version => {
     setMenuAnchorEl(null);
     setShowCQLModal(true);
@@ -61,6 +73,10 @@ const WorkspaceHeader = ({ handleDownloadArtifact, handleSaveArtifact, statusMes
         break;
       case 'download-cql':
         await handleDownload(version);
+        break;
+      // NEW: Handle Download & Sync to CQL Services
+      case 'download-sync-cql':
+        await handleDownloadAndSync(version);
         break;
       default:
         // This shouldn't happen, but just in case, just close the menu.
@@ -139,6 +155,20 @@ const WorkspaceHeader = ({ handleDownloadArtifact, handleSaveArtifact, statusMes
               Download CQL
             </Button>
 
+            {/* NEW: Download & Sync to CQL Services Button */}
+            <Button
+              className={styles.buttonBarButton}
+              aria-controls="download-menu"
+              aria-haspopup="true"
+              color="primary"
+              id="download-sync-cql"
+              onClick={handleMenuClick}
+              startIcon={<GetAppIcon />}
+              variant="contained"
+            >
+              Download & Sync
+            </Button>
+
             <Menu
               anchorEl={menuAnchorEl}
               id="download-menu"
@@ -195,6 +225,7 @@ const WorkspaceHeader = ({ handleDownloadArtifact, handleSaveArtifact, statusMes
 WorkspaceHeader.propTypes = {
   artifact: artifactProps,
   handleDownloadArtifact: PropTypes.func.isRequired,
+  handleDownloadAndSyncArtifact: PropTypes.func.isRequired, // NEW: Added prop type for new handler
   handleSaveArtifact: PropTypes.func.isRequired,
   statusMessage: PropTypes.string
 };
